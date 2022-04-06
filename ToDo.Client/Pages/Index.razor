@@ -1,5 +1,19 @@
 ﻿@page "/"
 
+
 <PageTitle>Index</PageTitle>
 
+<AddItem></AddItem>
 
+<Todos TodoItems=@items></Todos>
+
+@code{
+
+    private List<Item> items = new List<Item>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await httpClient.GetFromJsonAsync<List<Item>>("api/todo");
+    }
+
+}

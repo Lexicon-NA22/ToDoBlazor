@@ -1,7 +1,11 @@
 ﻿ <div class="container">
         <ul id="toDoItems" class="list-group align-self-sm-stretch mt-4">
-          <li class="list-group-item">Mjölk<button type="button" class="btn btn-danger">X</button></li>
-          <li class="list-group-item">Bananer<button type="button" class="btn btn-danger">X</button></li> 
+        @foreach(var item in TodoItems)
+        {
+           <li class="list-group-item @(item.Completed ? "change" : "")">@item.Text<button type="button" class="btn btn-danger">X</button></li>
+        }
+         @* <li class="list-group-item">Mjölk<button type="button" class="btn btn-danger">X</button></li>
+          <li class="list-group-item">Bananer<button type="button" class="btn btn-danger">X</button></li> *@
         </ul>
       </div>
 
