@@ -1,7 +1,7 @@
 ﻿<div class="border-bottom bg-white">
         <form id="todoForm" class="py-4 container">
           <div class="input-group input-group-lg">
-            <input type="text" class="form-control" id="todoInput" placeholder="Add todo..." autofocus>
+            <input @oninput="OnTextChanged" value="@Text" type="text" class="form-control" id="todoInput" placeholder="Add todo..." autofocus>
             <div class="input-group-append input-group-lg">
               <button id="addItemBtn" class="btn btn-info">ADD</button>
             </div>
@@ -10,5 +10,17 @@
       </div>
 
 @code {
+    [Parameter]
+    public string Text { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<string> TextChanged { get; set; } 
+
+
+    public async Task OnTextChanged(ChangeEventArgs e)
+    {
+        Text = e.Value.ToString();
+        await TextChanged.InvokeAsync(Text);
+    }
 
 }

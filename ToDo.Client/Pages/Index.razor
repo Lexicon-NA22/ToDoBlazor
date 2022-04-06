@@ -1,13 +1,15 @@
 ﻿@page "/"
 
-
 <PageTitle>Index</PageTitle>
 
-<AddItem></AddItem>
+<h1 class="text-center">@input</h1>
+
+<AddItem @bind-Text=@input></AddItem>
 
 <Todos TodoItems=@items></Todos>
 
 @code{
+    private string input = "";
 
     private List<Item> items = new List<Item>();
 
