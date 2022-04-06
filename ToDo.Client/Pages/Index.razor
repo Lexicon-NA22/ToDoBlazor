@@ -1,18 +1,33 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+<PageTitle Add="">Index</PageTitle>
 
 <AddItem></AddItem>
 
 <Todos TodoItems=@items></Todos>
 
 @code{
-   
+
     private List<Item> items = new List<Item>();
 
     protected override async Task OnInitializedAsync()
     {
         items = await httpClient.GetFromJsonAsync<List<Item>>("api/todo");
+    }
+
+    public async Task AddItem(string text)
+    {
+        //Validate text length?
+        var response = await httpClient.PostAsJsonAsync<CreateItemDto>("api/todo", new CreateItemDto { Text = text });
+
+        if (response.IsSuccessStatusCode)
+        {
+            var item = await response.Content.ReadFromJsonAsync<Item>();
+
+            if (item != null)
+                items.Add(item);
+        }
+
     }
 
 }
