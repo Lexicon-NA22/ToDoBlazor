@@ -1,5 +1,13 @@
-﻿<h3>Todos</h3>
+﻿ <div class="container">
+        <ul id="toDoItems" class="list-group align-self-sm-stretch mt-4">
+          <li class="list-group-item">Mjölk<button type="button" class="btn btn-danger">X</button></li>
+          <li class="list-group-item">Bananer<button type="button" class="btn btn-danger">X</button></li> 
+        </ul>
+      </div>
 
 @code {
+
+    [Parameter]
+    public IEnumerable<Item> TodoItems { get; set; } = null!;
 
 }
