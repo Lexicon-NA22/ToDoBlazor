@@ -1,4 +1,4 @@
-﻿namespace ToDo.Client.Models
+﻿namespace ToDo.Shared.Models
 {
     public class Item
     {
