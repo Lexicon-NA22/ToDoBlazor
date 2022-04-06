@@ -2,15 +2,12 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1 class="text-center">@input</h1>
-
-<AddItem @bind-Text=@input></AddItem>
+<AddItem></AddItem>
 
 <Todos TodoItems=@items></Todos>
 
 @code{
-    private string input = "";
-
+   
     private List<Item> items = new List<Item>();
 
     protected override async Task OnInitializedAsync()
