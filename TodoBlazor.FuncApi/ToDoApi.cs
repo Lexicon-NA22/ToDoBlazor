@@ -77,5 +77,33 @@ namespace TodoBlazor.FuncApi
 
             return new NoContentResult();
         }
+
+        [FunctionName("Delete")]
+        public static async Task<IActionResult> Delete(
+         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "todo/{id}")] HttpRequest req,
+         [Table("todoitems", "Todo", "{id}", Connection = "AzureWebJobsStorage") ] ItemTableEntity itemTableToDelete,
+         [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
+         string id,
+         ILogger log)
+        {
+            log.LogInformation("Delete Todo item");
+           
+            if (itemTableToDelete is null)  return new BadRequestResult();
+     
+           // if (string.IsNullOrWhiteSpace(id)) return new BadRequestResult();
+
+
+            //var itemTableToDelete = new ItemTableEntity
+            //{
+            //    PartitionKey = "Todo",
+            //    RowKey = id,
+            //    ETag = "*"
+            //};
+
+            var operation = TableOperation.Delete(itemTableToDelete);
+            var res = await todoTable.ExecuteAsync(operation);
+
+            return new NoContentResult();
+        }
     }
 }

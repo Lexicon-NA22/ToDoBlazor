@@ -2,7 +2,7 @@
         <ul id="toDoItems" class="list-group align-self-sm-stretch mt-4">
         @foreach(var item in TodoItems)
         {
-           <li @onclick="() => ItemCompleted(item)" class="list-group-item @(item.Completed ? "change" : "")">@item.Text<button type="button" class="btn btn-danger">X</button></li>
+           <li @onclick="() => ItemCompleted(item)" class="list-group-item @(item.Completed ? "change" : "")">@item.Text<button @onclick="() => Remove(item)" @onclick:stopPropagation="true" type="button" class="btn btn-danger">X</button></li>
         }
          @* <li class="list-group-item">Mjölk<button type="button" class="btn btn-danger">X</button></li>
           <li class="list-group-item">Bananer<button type="button" class="btn btn-danger">X</button></li> *@
@@ -12,7 +12,7 @@
 @code {
 
     [Parameter]
-    public IEnumerable<Item> TodoItems { get; set; } = null!;
+    public List<Item> TodoItems { get; set; } = null!;
 
 
     private async Task ItemCompleted(Item item)
@@ -23,6 +23,16 @@
         if (!response.IsSuccessStatusCode)
         {
             item.Completed = item.Completed ? false : true;
+        }
+    }
+
+    private async Task Remove(Item item)
+    {
+        var response = await httpClient.DeleteAsync($"api/todo/{item.Id}");
+
+        if (response.IsSuccessStatusCode)
+        {
+            TodoItems.Remove(item);
         }
     }
 
