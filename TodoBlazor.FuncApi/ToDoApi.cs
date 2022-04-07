@@ -10,6 +10,8 @@ using Newtonsoft.Json;
 using ToDo.Shared.Models;
 using TodoBlazor.FuncApi.Models;
 using TodoBlazor.FuncApi.Helpers;
+using Microsoft.Azure.Cosmos.Table;
+using System.Linq;
 
 namespace TodoBlazor.FuncApi
 {
@@ -34,6 +36,22 @@ namespace TodoBlazor.FuncApi
             await todoTable.AddAsync(item.ToTableEntity());
 
             return new OkObjectResult(item);
+        } 
+        
+        [FunctionName("Get")]
+        public static async Task<IActionResult> Get(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get",  Route = "todo")] HttpRequest req,
+            [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable table,
+            ILogger log)
+        {
+            log.LogInformation("Get all items");
+
+            var query = new TableQuery<ItemTableEntity>();
+            var res = await table.ExecuteQuerySegmentedAsync(query, null);
+
+            var response = res.Select(Mapper.ToItem).ToList();
+
+            return new OkObjectResult(response);
         }
     }
 }
