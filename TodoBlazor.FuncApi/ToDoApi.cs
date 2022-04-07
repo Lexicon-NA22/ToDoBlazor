@@ -12,6 +12,7 @@ using TodoBlazor.FuncApi.Models;
 using TodoBlazor.FuncApi.Helpers;
 using Microsoft.Azure.Cosmos.Table;
 using System.Linq;
+using Microsoft.Azure.Cosmos.Table.Queryable;
 
 namespace TodoBlazor.FuncApi
 {
@@ -19,7 +20,7 @@ namespace TodoBlazor.FuncApi
     {
         [FunctionName("Create")]
         public static async Task<IActionResult> Create(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post",  Route = "todo")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "todo")] HttpRequest req,
             [Table("todoitems", Connection = "AzureWebJobsStorage")] IAsyncCollector<ItemTableEntity> todoTable,
             ILogger log)
         {
@@ -36,11 +37,11 @@ namespace TodoBlazor.FuncApi
             await todoTable.AddAsync(item.ToTableEntity());
 
             return new OkObjectResult(item);
-        } 
-        
+        }
+
         [FunctionName("Get")]
         public static async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get",  Route = "todo")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "todo")] HttpRequest req,
             [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable table,
             ILogger log)
         {
@@ -52,11 +53,11 @@ namespace TodoBlazor.FuncApi
             var response = res.Select(Mapper.ToItem).ToList();
 
             return new OkObjectResult(response);
-        } 
-        
+        }
+
         [FunctionName("Put")]
         public static async Task<IActionResult> Put(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put",  Route = "todo/{id}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "todo/{id}")] HttpRequest req,
             [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable table,
             string id,
             ILogger log)
@@ -81,16 +82,16 @@ namespace TodoBlazor.FuncApi
         [FunctionName("Delete")]
         public static async Task<IActionResult> Delete(
          [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "todo/{id}")] HttpRequest req,
-         [Table("todoitems", "Todo", "{id}", Connection = "AzureWebJobsStorage") ] ItemTableEntity itemTableToDelete,
+         [Table("todoitems", "Todo", "{id}", Connection = "AzureWebJobsStorage")] ItemTableEntity itemTableToDelete,
          [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
          string id,
          ILogger log)
         {
             log.LogInformation("Delete Todo item");
-           
-            if (itemTableToDelete is null)  return new BadRequestResult();
-     
-           // if (string.IsNullOrWhiteSpace(id)) return new BadRequestResult();
+
+            if (itemTableToDelete is null) return new BadRequestResult();
+
+            // if (string.IsNullOrWhiteSpace(id)) return new BadRequestResult();
 
 
             //var itemTableToDelete = new ItemTableEntity
@@ -105,5 +106,28 @@ namespace TodoBlazor.FuncApi
 
             return new NoContentResult();
         }
+
+        [FunctionName("RemoveCompleted")]
+        public static async Task RemoveCompleted(
+           [TimerTrigger("0 */1 * * * *")] TimerInfo timer,
+           [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable todoTable,
+           [Queue("todoqueue", Connection = "AzureWebJobsStorage")] IAsyncCollector<Item> queueItem,
+           ILogger log)
+        {
+            log.LogInformation("Removecompleted started...");
+
+            var query = todoTable.CreateQuery<ItemTableEntity>().Where(i => i.Completed == true).AsTableQuery();
+            //var query2 = new TableQuery<ItemTableEntity>().Where(TableQuery.GenerateFilterConditionForBool("Completed", QueryComparisons.Equal, true));
+
+            var result = await todoTable.ExecuteQuerySegmentedAsync(query, null);
+
+            foreach (var item in result)
+            {
+                await queueItem.AddAsync(item.ToItem());
+                await todoTable.ExecuteAsync(TableOperation.Delete(item));
+
+            }
+        }
+
     }
 }
