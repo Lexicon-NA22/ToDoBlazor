@@ -7,29 +7,33 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using ToDo.Shared.Models;
+using TodoBlazor.FuncApi.Models;
+using TodoBlazor.FuncApi.Helpers;
 
 namespace TodoBlazor.FuncApi
 {
     public static class ToDoApi
     {
-        [FunctionName("Function1")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get",  Route = "api/todo")] HttpRequest req,
+        [FunctionName("Create")]
+        public static async Task<IActionResult> Create(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post",  Route = "api/todo")] HttpRequest req,
+            [Table("todoitems", Connection = "AzureWebJobsStorage")] IAsyncCollector<ItemTableEntity> todoTable,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
-            string name = req.Query["name"];
+            log.LogInformation("Create new todo item");
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+            var createTodo = JsonConvert.DeserializeObject<CreateItemDto>(requestBody);
 
-            return new OkObjectResult(responseMessage);
+            if (createTodo is null || string.IsNullOrWhiteSpace(createTodo.Text)) return new BadRequestResult();
+
+            var item = new Item { Text = createTodo.Text };
+
+            await todoTable.AddAsync(item.ToTableEntity());
+
+            return new OkObjectResult(item);
         }
     }
 }

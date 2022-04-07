@@ -2,7 +2,7 @@
 
 <PageTitle Add="">Index</PageTitle>
 
-<AddItem></AddItem>
+<AddItem Add="AddItem"></AddItem>
 
 <Todos TodoItems=@items></Todos>
 
@@ -17,7 +17,8 @@
 
     public async Task AddItem(string text)
     {
-        //Validate text length?
+        if (text.Length < 3) return;
+
         var response = await httpClient.PostAsJsonAsync<CreateItemDto>("api/todo", new CreateItemDto { Text = text });
 
         if (response.IsSuccessStatusCode)
