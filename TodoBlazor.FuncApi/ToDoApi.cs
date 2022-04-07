@@ -17,7 +17,7 @@ namespace TodoBlazor.FuncApi
     {
         [FunctionName("Create")]
         public static async Task<IActionResult> Create(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post",  Route = "api/todo")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post",  Route = "todo")] HttpRequest req,
             [Table("todoitems", Connection = "AzureWebJobsStorage")] IAsyncCollector<ItemTableEntity> todoTable,
             ILogger log)
         {
