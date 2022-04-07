@@ -13,6 +13,7 @@ using TodoBlazor.FuncApi.Helpers;
 using Microsoft.Azure.Cosmos.Table;
 using System.Linq;
 using Microsoft.Azure.Cosmos.Table.Queryable;
+using Microsoft.Azure.Storage.Blob;
 
 namespace TodoBlazor.FuncApi
 {
@@ -127,6 +128,19 @@ namespace TodoBlazor.FuncApi
                 await todoTable.ExecuteAsync(TableOperation.Delete(item));
 
             }
+        }
+
+        [FunctionName("GetRemovedFromQueue")]
+        public static async Task GetRemovedFromQueue(
+          [QueueTrigger("todoqueue", Connection = "AzureWebJobsStorage")] Item item,
+          [Blob("done", Connection = "AzureWebJobsStorage")] CloudBlobContainer blobContainer,
+          ILogger log)
+        {
+            log.LogInformation("Queue trigger started...");
+
+            await blobContainer.CreateIfNotExistsAsync();
+            var blob = blobContainer.GetBlockBlobReference($"{item.Id}.txt");
+            await blob.UploadTextAsync($"{item.Text} is completed");
         }
 
     }
