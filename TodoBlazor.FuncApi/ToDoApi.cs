@@ -52,6 +52,30 @@ namespace TodoBlazor.FuncApi
             var response = res.Select(Mapper.ToItem).ToList();
 
             return new OkObjectResult(response);
+        } 
+        
+        [FunctionName("Put")]
+        public static async Task<IActionResult> Put(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put",  Route = "todo/{id}")] HttpRequest req,
+            [Table("todoitems", Connection = "AzureWebJobsStorage")] CloudTable table,
+            string id,
+            ILogger log)
+        {
+            log.LogInformation("Update item");
+
+            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+
+            var itemToUpdate = JsonConvert.DeserializeObject<Item>(requestBody);
+
+            if (itemToUpdate is null || itemToUpdate.Id != id) return new BadRequestResult();
+
+            var itemEntity = itemToUpdate.ToTableEntity();
+            itemEntity.ETag = "*";
+
+            var operation = TableOperation.Replace(itemEntity);
+            await table.ExecuteAsync(operation);
+
+            return new NoContentResult();
         }
     }
 }

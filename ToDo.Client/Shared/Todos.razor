@@ -2,7 +2,7 @@
         <ul id="toDoItems" class="list-group align-self-sm-stretch mt-4">
         @foreach(var item in TodoItems)
         {
-           <li class="list-group-item @(item.Completed ? "change" : "")">@item.Text<button type="button" class="btn btn-danger">X</button></li>
+           <li @onclick="() => ItemCompleted(item)" class="list-group-item @(item.Completed ? "change" : "")">@item.Text<button type="button" class="btn btn-danger">X</button></li>
         }
          @* <li class="list-group-item">Mjölk<button type="button" class="btn btn-danger">X</button></li>
           <li class="list-group-item">Bananer<button type="button" class="btn btn-danger">X</button></li> *@
@@ -13,5 +13,17 @@
 
     [Parameter]
     public IEnumerable<Item> TodoItems { get; set; } = null!;
+
+
+    private async Task ItemCompleted(Item item)
+    {
+        item.Completed = item.Completed ? false : true;
+        var response = await httpClient.PutAsJsonAsync<Item>($"api/todo/{item.Id}", item);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            item.Completed = item.Completed ? false : true;
+        }
+    }
 
 }
